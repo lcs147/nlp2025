@@ -46,6 +46,7 @@ async def test_model_on_spider(model_path):
     if os.path.exists(checkpoint_file):
         with open(checkpoint_file) as f:
             test_cases_data = json.load(f)
+        test_cases_data = test_cases_data[:EVALUATION_ENTRIES_SIZE]
         start_idx = len(test_cases_data)
         print(f"Resuming from checkpoint: {start_idx} test cases loaded.")
     else:
@@ -97,7 +98,7 @@ async def test_model_on_spider(model_path):
     print("Evaluating test cases...")
     return evaluate(test_cases, [execution_accuracy_metric])
 
-
+import statistics
 # %%
 async def main():
     accuracies = []
@@ -117,8 +118,11 @@ async def main():
         lora_name = dirs[-2]
 
         scores = [m.score for t in result.test_results for m in t.metrics_data]
+
         accuracy = sum(scores) / len(scores) if scores else 0
-        print(f"Lora: {lora_name}/{checkpoint_name} - Accuracy: {accuracy:.3f} ({len(scores)} test cases)")
+        std_dev = statistics.stdev(scores)
+
+        print(f"Lora: {lora_name}/{checkpoint_name} - Accuracy: {accuracy:.3f} ± {std_dev:.3f} ({len(scores)} examples)")
 
 if __name__ == "__main__":
     asyncio.run(main()) # Run the async main function

@@ -7,9 +7,8 @@ from datasets import load_dataset
 import json, sqlite3
 import torch
 
-# %%
 # 3 exemplos do train dataset
-[
+few_shot_entries = [
   {
     "db_id": "department_management",
     "question": "How many heads of the departments are older than 56 ?",
@@ -113,13 +112,14 @@ for i, entry in enumerate(spider_dev_data[start_idx:EVALUATION_ENTRIES_SIZE], st
 
 results = results[:EVALUATION_ENTRIES_SIZE]
 # %%
-ncorrect = sum(1 for r in results if r.get("is_correct_baseline"))
-accuracy = ncorrect / len(results)
-print(f"Accuracy: {accuracy * 100:.2f}% | Correct: {ncorrect} | Total: {len(results)} ")
 
 import statistics
+ncorrect = sum(1 for r in results if r.get("is_correct_baseline"))
+accuracy = ncorrect / len(results)
+
 correctness_values = [1 if r.get("is_correct_baseline") else 0 for r in results]
 std_dev = statistics.stdev(correctness_values)
-print(f"Standard Deviation: {std_dev:.2f}")
+
+print(f"Accuracy: {accuracy:.3f} ± {std_dev:.3f} ({len(results)} examples)")
 
 

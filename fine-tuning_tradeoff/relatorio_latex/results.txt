@@ -1,0 +1,52 @@
+Spider results | text-to-sql
+---------------------------------
+Qwen_Qwen2-7B-Instruct                  | modelo base
+Accuracy: 0.480 ± 0.501 (150 examples)
+---------------------------------
+Qwen2-7B-Instruct-lora/checkpoint-261   | 3 época
+Accuracy: 0.793 ± 0.406 (150 examples)
+---------------------------------
+Qwen2-7B-Instruct-lora/checkpoint-435   | 5 época 
+Accuracy: 0.907 ± 0.292 (150 examples)
+
+======================================================
+Error examples for 5 epoch model
+
+  - input: What is the count of the car models produced in the United States?
+  - actual output: SELECT count(*) FROM CAR_MAKERS AS T1 JOIN COUNTRIES AS T2 ON T1.Country  =  T2.CountryId WHERE T2.CountryName  =  'United States'
+  - expected output: SELECT count(*) FROM MODEL_LIST AS T1 JOIN CAR_MAKERS AS T2 ON T1.Maker  =  T2.Id JOIN COUNTRIES AS T3 ON T2.Country  =  T3.CountryId WHERE T3.CountryName  =  'usa';
+  - context: ['car_1']
+  - retrieval context: None
+
+  - input: Which countries in europe have at least 3 car manufacturers?
+  - actual output: SELECT T1.CountryName FROM COUNTRIES AS T1 JOIN CONTINENTS AS T2 ON T1.Continent  =  T2.ContId JOIN CAR_MAKERS AS T3 ON T1.CountryId  =  T3.Country WHERE T2.Continent  =  'Europe' GROUP BY T1.CountryName HAVING COUNT(*)  >=  3;
+  - expected output: SELECT T1.CountryName FROM COUNTRIES AS T1 JOIN CONTINENTS AS T2 ON T1.Continent  =  T2.ContId JOIN CAR_MAKERS AS T3 ON T1.CountryId  =  T3.Country WHERE T2.Continent  =  'europe' GROUP BY T1.CountryName HAVING count(*)  >=  3;
+  - db_id: ['car_1']
+
+
+====================================================
+
+MMLU results | questions and answers
+---------------------------------
+Results for Qwen_Qwen2-7B-Instruct               | modelo base.
+Aggregated accuracy: 0.300 ± 0.016
+Accuracy by category:
+  STEM: 0.320 ± 0.466
+  Ciências Sociais: 0.280 ± 0.449
+  Humanidades: 0.300 ± 0.458
+----------------------------------------
+Results for Qwen2-7B-Instruct-lora_checkpoint-261 | 3 época.
+Aggregated accuracy: 0.373 ± 0.038
+Accuracy by category:
+  STEM: 0.400 ± 0.490
+  Ciências Sociais: 0.400 ± 0.490
+  Humanidades: 0.320 ± 0.466
+----------------------------------------
+Results for Qwen2-7B-Instruct-lora_checkpoint-435 | 5 época.
+Aggregated accuracy: 0.393 ± 0.057
+Accuracy by category:
+  STEM: 0.460 ± 0.498
+  Ciências Sociais: 0.400 ± 0.490
+  Humanidades: 0.320 ± 0.466
+----------------------------------------
+

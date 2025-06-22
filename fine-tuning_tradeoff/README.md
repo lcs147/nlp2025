@@ -36,7 +36,7 @@ pipenv shell
 
 ## 4. Download dos Dados
 
-- Baixe o **Spider dataset** e coloque os arquivos `train_spider.json`, `dev.json`, `test.json`, `tables.json` em `datasets/spider_data/`.
+- Baixe o **Spider dataset** e coloque os arquivos em `datasets/spider_data/`.
 - Os dados do **MMLU** são baixados automaticamente via Hugging Face Datasets.
 
 ## 5. Execução dos Scripts
@@ -79,4 +79,3 @@ Os resultados finais (acurácia, desvio padrão) são reportados na saida (stdou
 
 - Todos os seeds aleatórios foram fixados em 42 para garantir reprodutibilidade.
 - Se utilizar Google Colab, adapte os caminhos dos arquivos conforme necessário.
-- Para dúvidas sobre configuração de hardware ou dependências, consulte o `requirements.txt` e a documentação dos frameworks utilizados.

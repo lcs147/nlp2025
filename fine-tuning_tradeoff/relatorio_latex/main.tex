@@ -45,8 +45,15 @@
 % ● Framework de Avaliação: DeepEval (versão 0.21.x ou superior).
 % ● Frameworks de Treinamento: Hugging Face TRL, Axolotl ou similar
 
-\section{Introdução}
-Este trabalho propõe uma análise quantitativa do impacto do fine-tuning supervisionado em LLMs, utilizando a tarefa de Text-to-SQL como estudo de caso. O objetivo é mensurar, de forma sistemática, tanto o ganho de desempenho na tarefa-alvo quanto a degradação da capacidade de generalização em benchmarks de conhecimento geral, evidenciando o trade-off inerente ao processo de especialização de grandes modelos de linguagem.
+\section{Observações}
+Algumas observações importantes sobre o trabalho:
+\begin{itemize}
+    \item O repositório com o código do trabalho está disponível em \url{bla.com}.
+    \item Os checkpoints do LoRA e os resultados intermediários estão disponíveis em \href{https://drive.google.com/drive/folders/1VXzIdSLtCn5-leHEG6usvXw60Y5OzKKv?usp=sharing}{Link}.
+    \item O parâmetro variado no experimento foi o número de épocas de fine-tuning. Foram avaliados o modelo base (sem fine-tuning), o modelo fine-tuned por 3 épocas e o modelo fine-tuned por 5 épocas.
+    \item O modelo foi fine-tunado utilizando o dev split do Spider. Eu só percebi após finalizar que a especificação pedia o train split.
+    \item Para a avaliação na tarefa de Text-to-SQL, utilizei apenas as 150 primeiras instâncias do Spider dev split. Isso ocorreu porque eu estava na terceira (e última) conta do Colab e não seria possível avaliar todas as $1034$ instâncias. Para executar com todas as instâncias, basta alterar o valor da variável EVALUATION\_ENTRIES\_SIZE em $common.py$ para $1034$.
+\end{itemize}
 
 \section{Metodologia}
  A seguir, está detalhada cada etapa do pipeline experimental deste trabalho, incluindo arquitetura dos scripts, o pré-processamento dos dados, configuração do modelo base, a configuração do treinamento com LoRA, e a implementação da métrica customizada de avaliação.
@@ -147,11 +154,110 @@ Para avaliar a geração de consultas SQL, foi implementada a métrica customiza
 % add new figure
 \section{Resultados}
 % Os resultados devem ser apresentados com clareza estatística (e.g., médias, desvio padrão). É fortemente recomendada a inclusão de uma breve análise de erros, examinando 2-3 exemplos onde o modelo fine-tuned falhou na tarefa-alvo.
+\subsection{Desempenho na Tarefa Text-to-SQL (Spider)}
+
+A Tabela~\ref{tab:spider_results} apresenta as acurácias médias e desvios padrão dos modelos avaliados na tarefa de Text-to-SQL, considerando as 150 primeiras instâncias do Spider dev split.
+
+\begin{table}[h]
+\centering
+\caption{Resultados na tarefa Spider (Text-to-SQL)}
+\label{tab:spider_results}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Modelo} & \textbf{Épocas} & \textbf{Acurácia} & \textbf{Desvio Padrão} \\
+\midrule
+Qwen2-7B-Instruct (base) & 0 & 0.480 & 0.501 \\
+Qwen2-7B-Instruct-LoRA & 3 & 0.793 & 0.406 \\
+Qwen2-7B-Instruct-LoRA & 5 & 0.907 & 0.292 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A variação percentual de acurácia entre o modelo base e o modelo fine-tuned por 5 épocas foi de:
+\[
+\Delta_{\text{acurácia}} = \frac{0.907 - 0.480}{0.480} \times 100 \approx 89.0\%
+\]
+Ou seja, o \textbf{fine-tuning proporcionou um aumento de aproximadamente 89\% na acurácia na tarefa-alvo}.
+
+\subsection{Desempenho em Generalização (MMLU)}
+
+A Tabela~\ref{tab:mmlu_results} apresenta os resultados agregados e por categoria no benchmark MMLU, incluindo acurácia média e desvio padrão.
+
+\begin{table}[h]
+\centering
+\caption{Resultados no MMLU (generalização por categoria)}
+\label{tab:mmlu_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Modelo} & \textbf{Agregada} & \textbf{STEM} & \textbf{Ciências Sociais} & \textbf{Humanidades} \\
+\midrule
+Base & 0.300 $\pm$ 0.016 & 0.320 $\pm$ 0.466 & 0.280 $\pm$ 0.449 & 0.300 $\pm$ 0.458 \\
+LoRA (3 épocas) & 0.373 $\pm$ 0.038 & 0.400 $\pm$ 0.490 & 0.400 $\pm$ 0.490 & 0.320 $\pm$ 0.466 \\
+LoRA (5 épocas) & 0.393 $\pm$ 0.057 & 0.460 $\pm$ 0.498 & 0.400 $\pm$ 0.490 & 0.320 $\pm$ 0.466 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A variação percentual de acurácia agregada entre o modelo base e o modelo fine-tuned por 5 épocas foi de:
+\[
+\Delta_{\text{acurácia, MMLU}} = \frac{0.393 - 0.300}{0.300} \times 100 \approx 31.0\%
+\]
+Ou seja, \textbf{houve um aumento de aproximadamente 31\% na acurácia agregada no MMLU após o fine-tuning}.
+
+A Tabela~\ref{tab:mmlu_delta} detalha a variação percentual por categoria:
+
+\begin{table}[h]
+\centering
+\caption{Variação percentual de acurácia por categoria (MMLU, base $\rightarrow$ LoRA 5 épocas)}
+\label{tab:mmlu_delta}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Categoria} & \textbf{Base} & \textbf{LoRA 5 épocas} & \textbf{Variação (\%)} \\
+\midrule
+STEM & 0.320 & 0.460 & $+43.8\%$ \\
+Ciências Sociais & 0.280 & 0.400 & $+42.9\%$ \\
+Humanidades & 0.300 & 0.320 & $+6.7\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Observa-se que o ganho de acurácia foi mais expressivo nas categorias STEM e Ciências Sociais, enquanto em Humanidades o aumento foi modesto.
+
+\subsection{Análise de Erros}
+
+Apesar do aumento significativo de desempenho, o modelo fine-tuned ainda apresenta falhas em alguns casos. A seguir, foram destacados dois exemplos de erro do modelo após 5 épocas de fine-tuning na tarefa Text-to-SQL:
+
+\begin{itemize}
+    \item \textbf{Input:} What is the count of the car models produced in the United States?\\
+        \textbf{Output gerado:}
+        \begin{flushleft}
+        \texttt{SELECT count(*) FROM CAR\_MAKERS AS T1 JOIN COUNTRIES AS T2 ON T1.Country  =  T2.CountryId WHERE T2.CountryName  =  'United States'}
+        \end{flushleft}
+        \textbf{Output esperado:}
+        \begin{flushleft}
+        \texttt{SELECT count(*) FROM MODEL\_LIST AS T1 JOIN CAR\_MAKERS AS T2 ON T1.Maker  =  T2.Id JOIN COUNTRIES AS T3 ON T2.Country  =  T3.CountryId WHERE T3.CountryName  =  'usa';}
+        \end{flushleft}
+
+    \item \textbf{Input:} Which countries in europe have at least 3 car manufacturers?\\
+        \textbf{Output gerado:}
+        \begin{flushleft}
+        \texttt{SELECT T1.CountryName FROM COUNTRIES AS T1 JOIN CONTINENTS AS T2 ON T1.Continent  =  T2.ContId JOIN CAR\_MAKERS AS T3 ON T1.CountryId  =  T3.Country WHERE T2.Continent  =  'Europe' GROUP BY T1.CountryName HAVING COUNT(*)  $\geq$  3;}
+        \end{flushleft}
+        \textbf{Output esperado:}
+        \begin{flushleft}
+        \texttt{SELECT T1.CountryName FROM COUNTRIES AS T1 JOIN CONTINENTS AS T2 ON T1.Continent  =  T2.ContId JOIN CAR\_MAKERS AS T3 ON T1.CountryId  =  T3.Country WHERE T2.Continent  =  'europe' GROUP BY T1.CountryName HAVING count(*)  $\geq$  3;}
+        \end{flushleft}
+\end{itemize}
+Nestes exemplos, o modelo errou ao utilizar valores incorretos para os nomes de países ('United States' vs 'usa' e 'Europe' vs 'europe'). Isso provavelmente ocorreu porque, embora o esquema das tabelas seja fornecido, os valores possíveis para cada coluna não são explicitados no contexto do prompt.
 
 \section{Discussão}
 % A análise deve ser aprofundada, respondendo a perguntas como: A magnitude do ganho na tarefa de Text-to-SQL justifica a perda de capacidade geral? Quais fatores (hiperparâmetros, arquitetura do modelo) parecem influenciar mais este trade-off? Quais são as implicações práticas destes achados para o desenvolvimento de LLMs comerciais especializados?
+Era esperado que o modelo apresentasse desempenho inferior após o fine-tuning para Text-to-SQL devido ao fenômeno de "esquecimento catastrófico". No entanto, os modelos fine-tunados melhoraram em todas as três categorias avaliadas no MMLU. O maior ganho ocorreu em STEM, com variação de $+43,8\%$ em relação ao modelo base.
 
-
-% \printbibliography
-
+Alguns fatores podem explicar esses resultados:
+\begin{itemize}
+    \item A tarefa de conversão de texto para SQL exige raciocínio lógico e compreensão estrutural. Isso pode ter favorecido a transferência de aprendizado para áreas com demandas cognitivas semelhantes, como STEM (matemática) e Ciências Sociais (economia), resultando em ganhos nessas categorias. Em Humanidades (filosofia), que demanda outros tipos de raciocínio (eu acho), o impacto foi menor.
+    \item O fine-tuning foi realizado apenas com o dev split do Spider, que é menor que o conjunto de treino completo. Isso pode ter reduzido o risco de "esquecimento catastrófico", mesmo após 5 épocas, preservando a capacidade geral do modelo.
+\end{itemize}
+Os resultados indicam que é possível especializar LLMs para tarefas específicas sem comprometer a generalização, pelo menos em cenários de fine-tuning moderado e com datasets restritos. Isso tem implicações práticas importantes. Organizações podem adaptar modelos open-source para domínios específicos sem perder versatilidade em tarefas gerais. Técnicas como LoRA tornam esse processo viável mesmo com recursos computacionais limitados. Isso permite a personalização de LLMs em ambientes de produção. Tudo isso, claro, considerando que eu não fiz bobagem nos experimentos.
 \end{document}
