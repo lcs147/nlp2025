@@ -1,0 +1,4 @@
+baseline
+Accuracy: 53.60% | Correct: 134 | Total: 250 
+Standard Deviation: 0.50
+
