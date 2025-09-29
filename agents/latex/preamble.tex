@@ -1,0 +1,48 @@
+%mine
+    \usepackage[portuguese]{babel}
+    \usepackage[utf8]{inputenc}
+    \usepackage[T1]{fontenc}
+    \usepackage{lmodern}
+    
+    \usepackage{microtype} % improves typography
+
+    \usepackage{authblk}
+    
+    \usepackage{graphicx}
+
+    \usepackage{geometry}
+    \geometry{a4paper, margin=1in}
+
+    \usepackage[dvipsnames, table]{xcolor}
+    
+    \usepackage{amsmath, amsfonts}
+
+    \usepackage[normalem]{ulem} % underline
+
+    \usepackage{csquotes} % biblatex quotes stuff
+    \setquotestyle{american}
+
+    \usepackage{hyperref}
+	\addto\extrasenglish{ % autoref stuff
+		\def\chapterautorefname{Chapter}
+		\def\sectionautorefname{Section}
+		\def\subsectionautorefname{Subsection}
+		\def\subsubsectionautorefname{Subsubsection}
+		\def\paragraphautorefname{Paragraph}
+		\def\subparagraphautorefname{Subparagraph}
+	}
+
+%theorems
+    \usepackage{amsthm, thmtools}
+    
+    \declaretheoremstyle[style=plain, bodyfont=\normalfont, numbered=no]{proofidea-style}
+
+    \declaretheorem[style=plain]{theorem}
+    \declaretheorem[style=plain, sibling=theorem]{lemma, corollary, proposition}
+
+    \declaretheorem[style=definition, sibling=theorem]{definition, example, assumption, observation}
+    \declaretheorem[style=remark, numbered=no]{remark}
+    \declaretheorem[style=proofidea-style, name=Proof Idea]{proofidea}
+    \declaretheorem[style=proofidea-style, name=Proof Sketch]{proofsketch}
+
+
